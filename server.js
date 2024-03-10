@@ -1,7 +1,14 @@
 import express from "express";
+import dotenv from 'dotenv';
+import cors from "cors"
 
-const app = express();
+
+dotenv.config();
+const app = express()
+const port = process.env.PORT;
+
 app.use(express.json());
+app.use(cors());
 
 let course=[];
 let leads = [];
@@ -50,7 +57,7 @@ app.post('/courses/:courseId/register', (req, res) => {
 
 
 //4. Update Lead
-app.put('/leads/:leadId', (req, res) => {
+app.patch('/leads/:leadId', (req, res) => {
 
     const index=leads.findIndex((c)=>c.leadId===parseInt(req.params.leadId))
 
@@ -58,9 +65,9 @@ app.put('/leads/:leadId', (req, res) => {
         return res.status(400).send('Lead not found');
     }
 
-    const { status } = req.body; // Valid values: 'Accept', 'Reject', 'Waitlist'
+    const { status } = req.body; // Valid values: 'Accepted', 'Rejected', 'Waitlisted'
   
-    if (!['Accept', 'Reject', 'Waitlist'].includes(status)) {
+    if (!['Accepted', 'Rejected', 'Waitlisted'].includes(status)) {
       return res.status(400).send('Invalid status');
     }
 
@@ -76,7 +83,11 @@ app.get('/leads/search', (req, res) => {
         lead.name.toLowerCase().includes(query.toLowerCase()) ||
         lead.email.toLowerCase().includes(query.toLowerCase())
       );
-    res.status(200).json(searchResults);
+      if (searchResults.length === 0) {
+        res.status(404).send("Lead not found" );
+    } else {
+        res.status(200).json(searchResults);
+    }
 });
 
 //6. Add Comment
@@ -87,10 +98,8 @@ app.post('/comments', (req, res) => {
 });
 
 
-const PORT = 3000;
-
 //Starting server
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
 });
 
